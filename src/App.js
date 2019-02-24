@@ -1,24 +1,60 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import firebase from 'firebase';
 import './App.css';
+import { throws } from 'assert';
 
 class App extends Component {
+  constructor () {
+    super()
+    this.state = {
+      user: null
+    }
+
+    this.handleAuth = this.handleAuth.bind(this)
+    this.handleLogout = this.handleLogout.bind(this)
+  }
+
+  componentWillMount () {
+    firebase.auth().onAuthStateChanged(user => {
+      this.setState({ user })
+    })
+  }
+
+  handleAuth () {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth().signInWithPopup(provider)
+      .then(result => console.log(`${result.user.email} ha iniciado sesión`))
+      .catch(error => console.log(`Error ${error.code}: ${error.message}`))
+  }
+
+  handleLogout () {
+    firebase.auth().signOut()
+  }
+
+  renderLoginButton () {
+    if (this.state.user) {
+      return (
+        <div>
+          <img width="200px" src={this.state.user.photoURL} alt={this.state.user.displayName}/>
+          <p>Hola {this.state.user.displayName}</p>
+          <button onClick={this.handleLogout}>Cerrar sesión</button>
+        </div>
+      )
+    } else {
+      return (
+        <button onClick={this.handleAuth}>Login Google</button>
+        )}
+  }
+
   render() {
     return (
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
           <p>
             Clonegram
           </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+          {this.renderLoginButton()}
         </header>
       </div>
     );
